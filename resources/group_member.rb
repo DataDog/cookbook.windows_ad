@@ -22,12 +22,13 @@ property :cmd_domain, String
 action :add do
   group_dn = CmdHelper.dn(new_resource.group_name, new_resource.group_ou, new_resource.domain_name)
   user_dn  = CmdHelper.dn(new_resource.user_name,  new_resource.user_ou, new_resource.domain_name)
-
+  Chef::Log.debug("group_dn is #{group_dn}")
+  Chef::Log.debug("user_dn is #{user_dn}")
   if member_of?(user_dn, group_dn)
     Chef::Log.debug('The user is already member of the group')
   else
     cmd = dsmod_group_cmd(group_dn, user_dn, '-addmbr')
-
+    Chef::Log.debug("dsmod command is #{cmd}")
     Chef::Log.info(print_msg("add #{new_resource.user_name}
                              to #{new_resource.group_name}"))
     CmdHelper.shell_out(cmd, new_resource.cmd_user, new_resource.cmd_pass, new_resource.cmd_domain)
@@ -62,7 +63,9 @@ action_class do
   end
 
   def member_of?(user_dn, group_dn)
-    check = CmdHelper.shell_out("dsget group  \"#{group_dn}\"  -members", new_resource.cmd_user, new_resource.cmd_pass, new_resource.cmd_domain)
+    cmd = "dsget group  \"#{group_dn}\"  -members"
+    Chef::Log.debug("dsget command is #{cmd}")
+    check = CmdHelper.shell_out(cmd, new_resource.cmd_user, new_resource.cmd_pass, new_resource.cmd_domain)
     check.stdout.downcase.include?(user_dn.downcase)
   end
 

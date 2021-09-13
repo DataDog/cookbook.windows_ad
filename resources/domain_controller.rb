@@ -78,16 +78,11 @@ end
 
 action_class do
   def exists?
-    # [adsi]::Exists('LDAP://cn=dcbackup,ou=domain controllers,dc=ad,dc=datadogqalab,dc=com')
+    # Example query with domain controller "mydc" and domain "test.contoso.com"
+    # [adsi]::Exists('LDAP://cn=mydc,ou=domain controllers,dc=test,dc=contoso,dc=com')
     ldap_path = "cn=" + new_resource.name + ",ou=domain controllers," + new_resource.domain.split('.').map! { |k| "dc=#{k}" }.join(',')
     check = Mixlib::ShellOut.new("powershell.exe -command [adsi]::Exists('LDAP://#{ldap_path}')").run_command
     check.stdout.match('True')
-  end
-
-  def computer_exists?
-    comp = Mixlib::ShellOut.new('powershell.exe -command "get-wmiobject -class win32_computersystem -computername . | select domain"').run_command
-    stdout = comp.stdout.downcase
-    stdout.include?(new_resource.domain.downcase)
   end
 
   def last_dc?

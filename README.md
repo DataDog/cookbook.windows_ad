@@ -129,18 +129,19 @@ The windows_ad::default recipe installs the required roles and features to suppo
     end
     ```
 
-### `domain`
+### `domain_controller`
 
 #### Actions
 
-* :create: Installs a forest, domain, or domain controller
+* :create: Installs a forest, or domain controller
 * :delete: Removes a domain controller from domain
 
 #### Property Parameters
 
-* name: name property.  Name of the forest/domain to operate against.
+* name: name of the host machine.
 * type: type of install. Valid values: forest, domain, read-only.
 * safe_mode_pass: safe mode administrative password.
+* domain_name: name property.  Name of the forest/domain to operate against.
 * domain_user: User account to join the domain or to create a domain controller. **Required**: for `:create` except on `type` `forest` on windows 2012 and above.
 * domain_pass: User password to join the domain or to create a domain controller. **Required**: for `:create` except on `type` `forest` on windows 2012 and above.
 * local_pass: Local Administrator Password for removing domain controller.
@@ -152,14 +153,16 @@ The windows_ad::default recipe installs the required roles and features to suppo
 
     ```rb
     # Create Contoso.com forest
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :create
       type "forest"
       safe_mode_pass "Passw0rd"
     end
 
     # Create Contoso.com forest and don't restart Windows
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :create
       type "forest"
       safe_mode_pass "Passw0rd"
@@ -167,7 +170,8 @@ The windows_ad::default recipe installs the required roles and features to suppo
     end
 
     # Create Contoso.com replica
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :create
       type "replica"
       safe_mode_pass "Passw0rd"
@@ -176,7 +180,8 @@ The windows_ad::default recipe installs the required roles and features to suppo
     end
 
     # Create Contoso.com forest with DNS, Win2008 R2 Operational Mode Windows Server 2008 R2
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :create
       type "forest"
       safe_mode_pass "Passw0rd"
@@ -187,7 +192,8 @@ The windows_ad::default recipe installs the required roles and features to suppo
     end
 
     # Create Contoso.com forest with DNS, Win2008 Operational Mode Windows Server 2012
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :create
       type "forest"
       safe_mode_pass "Passw0rd"
@@ -197,7 +203,8 @@ The windows_ad::default recipe installs the required roles and features to suppo
     end
 
     # Remove Domain Controller
-    windows_ad_domain "contoso.local" do
+    windows_ad_domain_controller "dc1" do
+      domain_name "contoso.local"
       action :delete
       local_pass "Passw0rd"
     end

@@ -10,7 +10,7 @@ provides :windows_ad_domain_controller
 
 default_action :create
 
-property :domain, String, required: true
+property :domain_name, String, required: true
 property :domain_user, String, required: true
 property :domain_pass, String, required: true
 property :parent_domain_name, String
@@ -30,14 +30,14 @@ action :create do
   else
     if Chef::Version.new(node['os_version']) >= Chef::Version.new('6.2')
       cmd = create_command
-      cmd << " -DomainName #{new_resource.domain}"
+      cmd << " -DomainName #{new_resource.domain_name}"
       cmd << " -SafeModeAdministratorPassword (convertto-securestring '#{new_resource.safe_mode_pass}' -asplaintext -Force)"
       cmd << ' -Force:$true'
       cmd << ' -NoRebootOnCompletion' unless new_resource.restart
     else
       cmd = 'dcpromo -unattend'
       cmd << " -newDomain:#{new_resource.type}"
-      cmd << " -NewDomainDNSName:#{new_resource.domain}"
+      cmd << " -NewDomainDNSName:#{new_resource.domain_name}"
       cmd << if !new_resource.restart
                ' -RebootOnCompletion:No'
              else
@@ -49,7 +49,7 @@ action :create do
     Chef::Log.debug("cmd is #{cmd}")
     cmd << format_options(new_resource.options)
 
-    powershell_script "create_domain_#{new_resource.domain}" do
+    powershell_script "create_domain_#{new_resource.domain_name}" do
       code cmd
       returns [0, 1, 2, 3, 4]
     end
@@ -70,7 +70,7 @@ action :delete do
     cmd << ' -DemoteOperationMasterRole' if last_dc?
     cmd << format_options(new_resource.options)
 
-    powershell_script "remove_domain_#{new_resource.domain}" do
+    powershell_script "remove_domain_#{new_resource.domain_name}" do
       code cmd
     end
   end
@@ -80,7 +80,7 @@ action_class do
   def exists?
     # Example query with domain controller "mydc" and domain "test.contoso.com"
     # [adsi]::Exists('LDAP://cn=mydc,ou=domain controllers,dc=test,dc=contoso,dc=com')
-    ldap_path = "cn=" + new_resource.name + ",ou=domain controllers," + new_resource.domain.split('.').map! { |k| "dc=#{k}" }.join(',')
+    ldap_path = "cn=" + new_resource.name + ",ou=domain controllers," + new_resource.domain_name.split('.').map! { |k| "dc=#{k}" }.join(',')
     check = Mixlib::ShellOut.new("powershell.exe -command [adsi]::Exists('LDAP://#{ldap_path}')").run_command
     check.stdout.match('True')
   end
